@@ -10,8 +10,6 @@ from aiogram.enums import ParseMode
 from app.user import user
 from app.admin import admin
 
-from config import TOKEN
-
 from app.database.models import async_main
 
 
