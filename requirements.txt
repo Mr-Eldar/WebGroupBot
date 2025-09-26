@@ -9,6 +9,7 @@ annotated-types==0.7.0
 asyncpg==0.30.0
 attrs==25.3.0
 certifi==2025.8.3
+dotenv==0.9.9
 frozenlist==1.7.0
 greenlet==3.2.4
 idna==3.10
@@ -21,6 +22,7 @@ psycopg2==2.9.10
 psycopg2-binary==2.9.10
 pydantic==2.11.7
 pydantic_core==2.33.2
+python-dotenv==1.1.1
 SQLAlchemy==2.0.43
 typing-inspection==0.4.1
 typing_extensions==4.15.0
