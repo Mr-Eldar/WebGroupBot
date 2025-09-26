@@ -1,14 +1,15 @@
-from _datetime import datetime
 import os
+from dotenv import load_dotenv
+from _datetime import datetime
 
 from sqlalchemy import ForeignKey, String, BigInteger, Boolean, Integer, DateTime
 from sqlalchemy.orm import Mapped, mapped_column, DeclarativeBase, relationship
 from sqlalchemy.ext.asyncio import AsyncAttrs, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
-from config import DB_URL
+load_dotenv()
 
-engine = create_async_engine(url=DB_URL,
+engine = create_async_engine(url=os.getenv("DB_URL"),
                              echo=True)
 
 async_session = async_sessionmaker(engine)

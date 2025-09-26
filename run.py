@@ -16,7 +16,7 @@ from app.database.models import async_main
 
 
 async def main():
-    bot = Bot(token=TOKEN,
+    bot = Bot(token=os.getenv('TOKEN'),
               default=DefaultBotProperties(parse_mode=ParseMode.HTML))
 
     dp = Dispatcher()
