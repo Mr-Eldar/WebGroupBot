@@ -108,6 +108,7 @@ async def cmd_profile(event: Message | CallbackQuery, state: FSMContext):
                 f'📈 <b>СТАТИСТИКА</b>\n'
                 f'💯 Всего баллов: {user.points}\n'
                 f'✅ Выполнено ДЗ: {user.completed_hw}\n'
+                f'❌ Просрочено ДЗ: {user.expired_hw}\n'
                 f'🏆 Рейтинг: #{user.rating}\n\n'
                 f'📋 <b>БЫСТРЫЕ ДЕЙСТВИЯ</b>\n'
                 '/hw — Все задания\n'
@@ -144,6 +145,7 @@ async def cmd_profile(event: Message | CallbackQuery, state: FSMContext):
                 f'📈 <b>СТАТИСТИКА</b>\n'
                 f'💯 Всего баллов: {user.points}\n'
                 f'✅ Выполнено ДЗ: {user.completed_hw}\n'
+                f'❌ Просрочено ДЗ: {user.expired_hw}\n'
                 f'🏆 Рейтинг: #{user_profile.rating}\n\n'
                 f'📋 <b>БЫСТРЫЕ ДЕЙСТВИЯ</b>\n'
                 '/hw — Все задания\n'
@@ -368,7 +370,8 @@ async def get_rating_user_info(callback: CallbackQuery):
         f"🎯 <b>Уровень:</b> {level_info['name']}\n"
         f"⭐ <b>Баллы:</b> {user_profile.points}\n"
         f"🏆 <b>Рейтинг:</b> #{user_profile.rating}\n"
-        f"✅ <b>Выполнено ДЗ:</b> {user_profile.completed_hw}\n\n"
+        f"✅ <b>Выполнено ДЗ:</b> {user_profile.completed_hw}\n"
+            f'❌ Просрочено ДЗ: {user_profile.expired_hw}\n\n'
         f"📊 <b>Прогресс уровня:</b> {get_level_progress_bar(level_info['progress'])}\n\n"
     )
 

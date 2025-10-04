@@ -22,12 +22,12 @@ class Admin(Filter):
 async def cmd_start(message: Message):
         await message.answer_sticker('CAACAgIAAxkBAAEPX7loxtKsgYJJycyXX2WAIX1ztonXugACeAIAAladvQr8ugi1kX0cDDYE')
         await message.answer('⚙️ <b>Панель администратора</b>\n\n'
-                             'Добро пожаловать в систему управления ботом! Здесь вы можете управлять учебным процессом.\n\n'
-                             '📋 <b>Доступные функции:</b>\n'
-                             '• Создание новых заданий 📝\n'
-                             '• Управление пользователями 👥\n'
-                             '• Просмотр статистики 📊\n\n'
-                             '💡 <b>Используйте кнопки ниже для управления</b>', reply_markup=admin_kb)
+                            'Добро пожаловать в систему управления ботом! Здесь вы можете управлять учебным процессом.\n\n'
+                            '📋 <b>Доступные функции:</b>\n'
+                            '• Создание новых заданий 📝\n'
+                            '• Управление пользователями 👥\n'
+                            '• Просмотр статистики 📊\n\n'
+                            '💡 <b>Используйте кнопки ниже для управления</b>', reply_markup=admin_kb)
 
 
 @admin.callback_query(F.data == 'add_hw')
@@ -97,10 +97,11 @@ async def st_task_complete_points(message: Message, state: FSMContext):
     await message.delete()
     await message.bot.delete_message(message.chat.id, message.message_id - 1)
     await message.answer('📎 <b>Дополнительные материалы</b>\n\n'
-                             'Можно прикрепить:\n\n'
-                             '• Ссылки на ресурсы 🔗\n'
-                             '• Примеры выполнения 🎯\n\n'
-                             '<b>Или нажмите "Пропустить"</b> ⏭️', reply_markup=skip)
+                            'Можно прикрепить:\n\n'
+                            '• Ссылки на ресурсы 🔗\n'
+                            '• Примеры выполнения 🎯\n'
+                            '• Фото задания только одно. 📎\n\n'
+                            '<b>Или нажмите "Пропустить"</b> ⏭️', reply_markup=skip)
     await state.set_state(CreateTask.taskFinallyAdd)
 
 
@@ -109,13 +110,13 @@ async def st_task_complete_points(message: Message, state: FSMContext):
 async def st_task_finally_add(event: Message | CallbackQuery, state: FSMContext):
     if isinstance(event, Message):
         users = await get_users()
-        if not event.text:
-            await event.answer('❌ Извините, но мне кажется вы отправили мне, явно не текст.')
-            return
-        await state.update_data(task_finally_add=event.text)
+        if event.photo:
+            await state.update_data(task_finally_add=event.photo[-1].file_id)
+        else:
+            await state.update_data(task_finally_add=event.text)
         data = await state.get_data()
         await add_task(data['task_name'], data['task_desc'], data['task_complete_time'], data['task_complete_points'],
-                       data['task_finally_add'])
+                    data['task_finally_add'])
         await event.answer('✅ <b>Задание успешно создано!</b>\n\n'
                             f'🎯 <b>{data['task_name']}</b>\n'
                             f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
@@ -127,15 +128,27 @@ async def st_task_finally_add(event: Message | CallbackQuery, state: FSMContext)
         await event.answer('Расслыка уведомления о новом дз пользователям началась.')
         for user in users:
             try:
-                await event.bot.send_message(chat_id=user.tg_id,
-                                             text=f'📣 <b>НОВОЕ ДОМАШНЕЕ ЗАДАНИЕ!</b>\n\n'
-                                                  f'🎯 <b>{data['task_name']}</b>\n\n'
-                                                  f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
-                                                  f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
-                                                  f'📋 <b>Описание:</b>\n'
-                                                  f'<b>{data['task_desc']}</b>\n\n'
-                                                  f'💡 <i>Не откладывай - начинай работать уже сегодня!</i>\n\n'
-                                                  f'📝 Используй команду /hw чтобы посмотреть все задания')
+                if event.photo:
+                    await event.bot.send_photo(chat_id=user.tg_id,
+                                            photo=data['task_finally_add'],
+                                            caption=f'📣 <b>НОВОЕ ДОМАШНЕЕ ЗАДАНИЕ!</b>\n\n'
+                                                    f'🎯 <b>{data["task_name"]}</b>\n\n'
+                                                    f'📅 <b>Дедлайн:</b> {data["task_complete_time"]}\n'
+                                                    f'💯 <b>Баллы:</b> {data["task_complete_points"]}\n\n'
+                                                    f'📋 <b>Описание:</b>\n'
+                                                    f'<b>{data["task_desc"]}</b>\n\n'
+                                                    f'💡 <i>Не откладывай - начинай работать уже сегодня!</i>\n\n'
+                                                    f'📝 Используй команду /hw чтобы посмотреть все задания')
+                else:
+                    await event.bot.send_message(chat_id=user.tg_id,
+                                            text=f'📣 <b>НОВОЕ ДОМАШНЕЕ ЗАДАНИЕ!</b>\n\n'
+                                                f'🎯 <b>{data['task_name']}</b>\n\n'
+                                                f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
+                                                f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
+                                                f'📋 <b>Описание:</b>\n'
+                                                f'<b>{data['task_desc']}</b>\n\n'
+                                                f'💡 <i>Не откладывай - начинай работать уже сегодня!</i>\n\n'
+                                                f'📝 Используй команду /hw чтобы посмотреть все задания')
             except:
                 pass
                 await state.clear()
@@ -148,27 +161,27 @@ async def st_task_finally_add(event: Message | CallbackQuery, state: FSMContext)
         data = await state.get_data()
         await event.answer()
         await add_task(data['task_name'], data['task_desc'], data['task_complete_time'], data['task_complete_points'],
-                       data['task_finally_add'])
+                    data['task_finally_add'])
         await event.message.edit_text('✅ <b>Задание успешно создано!</b>\n\n'
-                           f'🎯 <b>{data['task_name']}</b>\n'
-                           f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
-                           f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
-                           f'📊 <b>Статус:</b> Опубликовано для всех студентов\n'
-                           '📢 Уведомления отправлены\n'
-                           '⏰ Напоминание придет за 24 часа\n\n'
-                           '💡 <i>Студенты уже видят задание в списке ДЗ</i>')
+                        f'🎯 <b>{data['task_name']}</b>\n'
+                        f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
+                        f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
+                        f'📊 <b>Статус:</b> Опубликовано для всех студентов\n'
+                        '📢 Уведомления отправлены\n'
+                        '⏰ Напоминание придет за 24 часа\n\n'
+                        '💡 <i>Студенты уже видят задание в списке ДЗ</i>')
         await event.message.answer('Расслыка уведомления о новом дз пользователям началась.')
         for user in users:
             try:
                 await event.message.bot.send_message(chat_id=user.tg_id,
-                                             text=f'📣 <b>НОВОЕ ДОМАШНЕЕ ЗАДАНИЕ!</b>\n\n'
-                                                  f'🎯 <b>{data['task_name']}</b>\n\n'
-                                                  f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
-                                                  f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
-                                                  f'📋 <b>Описание:</b>\n'
-                                                  f'<b>{data['task_desc']}</b>\n\n'
-                                                  f'💡 <i>Не откладывай - начинай работать уже сегодня!</i>\n\n'
-                                                  f'📝 Используй команду /hw чтобы посмотреть все задания')
+                                            text=f'📣 <b>НОВОЕ ДОМАШНЕЕ ЗАДАНИЕ!</b>\n\n'
+                                                f'🎯 <b>{data['task_name']}</b>\n\n'
+                                                f'📅 <b>Дедлайн:</b> {data['task_complete_time']}\n'
+                                                f'💯 <b>Баллы:</b> {data['task_complete_points']}\n\n'
+                                                f'📋 <b>Описание:</b>\n'
+                                                f'<b>{data['task_desc']}</b>\n\n'
+                                                f'💡 <i>Не откладывай - начинай работать уже сегодня!</i>\n\n'
+                                                f'📝 Используй команду /hw чтобы посмотреть все задания')
             except:
                 pass
                 await state.clear()
