@@ -121,8 +121,16 @@ async def add_task(taskName, taskDesc, taskTime, taskPoints, taskMaterials):
         task = await session.scalar(select(Task).where(Task.task_name == taskName))
 
         if not task:
-            session.add(Task(task_name=taskName, task_description=taskDesc,
-                             task_complete_time=taskTime, points=taskPoints, task_materials=taskMaterials))
+            # Преобразуем taskPoints в int, если это строка
+            points_value = int(taskPoints) if isinstance(taskPoints, str) else taskPoints
+            
+            session.add(Task(
+                task_name=taskName, 
+                task_description=taskDesc,
+                task_complete_time=taskTime, 
+                points=points_value,  # Теперь это число
+                task_materials=taskMaterials
+            ))
             await session.commit()
         return task
 
