@@ -222,7 +222,7 @@ async def approve_user_hw(tg_id, task_id, points):
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
             old_points = user.points
-            user.points += intpoints
+            user.points += points
             user.completed_hw += 1
 
             # Преобразуем task_id в число
