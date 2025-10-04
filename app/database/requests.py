@@ -208,7 +208,9 @@ async def get_hw():
 
 async def get_hw_by_id(task_id):
     async with async_session() as session:
-        return await session.scalar(select(Task).where(Task.id == task_id))
+        # Преобразуем task_id в число
+        task_id_int = int(task_id) if isinstance(task_id, str) else task_id
+        return await session.scalar(select(Task).where(Task.id == task_id_int))
 
 
 async def approve_user_hw(tg_id, task_id, points):
