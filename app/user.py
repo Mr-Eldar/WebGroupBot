@@ -453,7 +453,7 @@ async def check_danger_hw_process(callback: CallbackQuery, state: FSMContext):
 @user.callback_query(CheckHw.user_id, F.data.startswith('check_user_hw_'))
 async def check_user_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        user_id = int(callback.data.split('_')[-1])
+        tg_id = int(callback.data.split('_')[-1])  # Получаем tg_id напрямую
         data = await state.get_data()
         task_id = data['task_id']
 
@@ -461,7 +461,7 @@ async def check_user_hw_process(callback: CallbackQuery, state: FSMContext):
         points = int(task.points)
 
         # Одобряем ДЗ и получаем информацию об уровне
-        level_info = await approve_user_hw(user_id, task_id, points)
+        level_info = await approve_user_hw(tg_id, task_id, points)
 
         # Отправляем уведомление пользователю
         try:
@@ -484,12 +484,12 @@ async def check_user_hw_process(callback: CallbackQuery, state: FSMContext):
             message_text += "\n📈 Продолжайте в том же духе!"
 
             await callback.bot.send_message(
-                user_id,
+                tg_id,
                 message_text,
                 parse_mode="HTML"
             )
         except:
-            print(f"Не удалось отправить сообщение пользователю {user_id}")
+            print(f"Не удалось отправить сообщение пользователю {tg_id}")
 
         await callback.answer("✅ ДЗ успешно одобрено!")
         await callback.message.edit_text(f'✅ ДЗ засчитано пользователю!')

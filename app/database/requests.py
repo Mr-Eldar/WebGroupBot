@@ -217,20 +217,19 @@ async def get_hw_by_id(task_id):
         return await session.scalar(select(Task).where(Task.id == task_id_int))
 
 
-async def approve_user_hw(tg_id, task_id, points):
+async def approve_user_hw(user_id, task_id, points):
     async with async_session() as session:
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        # Ищем пользователя по внутреннему ID (user_id), а не tg_id
+        user = await session.scalar(select(User).where(User.id == user_id))
         if user:
             old_points = user.points
             user.points += points
             user.completed_hw += 1
 
-            # Преобразуем task_id в число
-            task_id_int = int(task_id)
             userTask = await session.scalar(
                 select(UserTask).where(
                     UserTask.user_id == user.id,
-                    UserTask.task_id == task_id_int  # Используем число
+                    UserTask.task_id == task_id
                 )
             )
             if userTask:
@@ -239,7 +238,7 @@ async def approve_user_hw(tg_id, task_id, points):
             await session.commit()
 
             # ОБНОВЛЯЕМ УРОВЕНЬ ПОЛЬЗОВАТЕЛЯ
-            level_info = await update_user_level(tg_id)
+            level_info = await update_user_level(user.tg_id)  # Используем tg_id для обновления уровня
 
             # Обновляем рейтинг если баллы изменились
             if old_points != user.points:

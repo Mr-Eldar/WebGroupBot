@@ -122,5 +122,6 @@ async def get_users_kb():
     keyboard = InlineKeyboardBuilder()
 
     for user in users:
+        # Убедитесь, что передаете tg_id, а не user.id
         keyboard.add(InlineKeyboardButton(text=f'{user.su}', callback_data=f'check_user_hw_{user.tg_id}'))
     return keyboard.adjust(2).as_markup()
