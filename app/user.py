@@ -267,6 +267,10 @@ async def finish_photo_sending(message: Message, state: FSMContext):
                     callback_data=f"check_success_hw_{data['hw_task_id']}"
                 ),
                 InlineKeyboardButton(
+                    text="⚠️ Дз выполненно не правильно",
+                    callback_data=f"check_danget_hw_{message.from_user.id}_{data['hw_task_id']}"
+                ),
+                InlineKeyboardButton(
                     text="❌ Отклонить",
                     callback_data=f"check_reject_hw_{message.from_user.id}_{data['hw_task_id']}"
                 )
@@ -425,6 +429,24 @@ async def check_reject_hw_process(callback: CallbackQuery, state: FSMContext):
         print(f"Error: {e}")
 
 
+@user.callback_query(F.data.startswith('check_danger_hw_'))
+async def check_danger_hw_process(callback: CallbackQuery, state: FSMContext):
+    try:
+        task_id = int(callback.data.split('_')[-1])
+        await state.update_data(task_id=task_id)
+
+        await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
+        await callback.message.answer(
+            '👤 Выберите пользователя которому хотите сообщить о неправильном ДЗ.',
+            reply_markup=await get_users_kb()
+        )
+        await callback.answer()
+        await state.set_state(DangerHw.user_id)
+    except Exception as e:
+        await callback.answer("❌ Ошибка при обработке")
+        print(f"Error: {e}")
+
+
 @user.callback_query(CheckHw.user_id, F.data.startswith('check_user_hw_'))
 async def check_user_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
@@ -508,6 +530,14 @@ async def reject_user_hw_process(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
 
+@user.callback_query(DangerHw.user_id, F.data.startswith('check_user_hw_'))
+async def danger_user_hw_process(callback: CallbackQuery, state: FSMContext):
+        await callback.answer()
+        await state.update_data(user_id=callback.data.split('_')[-1])
+        await callback.message.edit_text('✏️ Отлично теперь объясните почему это дз выполненно не правильно.')
+        await state.set_state(DangerHw.description)
+
+
 @user.message(Reg.sn)
 async def reg_surname_name(message: Message, state: FSMContext):
     await send_typing_action(message)
@@ -563,3 +593,35 @@ async def hw_send_photos(message: Message, state: FSMContext):
         "📸 Фото добавлено! Пришлите еще или нажмите '✅ Завершить отправку'",
         reply_markup=finish_kb
     )
+
+
+@user.message(DangerHw.description)
+async def danger_hw(message: Message, state: FSMContext):
+    try:
+        await state.update_data(danger_desc=message.text)
+        data = await state.get_data()
+
+        await danger_user_hw(data['user_id'], data['task_id'])
+
+        # Отправляем уведомление пользователю
+        try:
+            message_text = (
+                "❌ <b>Ваше ДЗ было отклонено!\n"
+                f"По причине: {data['danger_desc']}</b>\n\n"
+            )
+
+            await message.bot.send_message(
+                data['user_id'],
+                message_text,
+                parse_mode="HTML"
+            )
+        except:
+            print(f"Не удалось отправить сообщение пользователю {data['user_id']}")
+
+        await message.answer("❌ ДЗ было отклонено!")
+
+    except Exception as e:
+        await message.answer("❌ Ошибка при отклонении ДЗ")
+        print(f"Error: {e}")
+
+    await state.clear()

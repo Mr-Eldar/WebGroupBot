@@ -251,9 +251,25 @@ async def decline_user_hw(tg_id, task_id):
         return False  # Пользователь или задача не найдены
 
 
+async def danger_user_hw(tg_id, task_id):
+    async with async_session() as session:
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
+        if user:
+            userTask = await session.scalar(
+                select(UserTask).where(
+                    UserTask.user_id == user.id,
+                    UserTask.task_id == task_id
+                )
+            )
+            if userTask:
+                userTask.status = 'not started'
+                await session.commit()
+                return True  # Успешно отклонено
+        return False  # Пользователь или задача не найдены
+
+
 
 # РЕЙТИНГ
-
 
 async def get_users_with_rating():
     async with async_session() as session:

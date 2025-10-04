@@ -31,3 +31,9 @@ class CheckHw(StatesGroup):
 class RejectHw(StatesGroup):
     task_id = State()
     user_id = State()
+
+
+class DangerHw(StatesGroup):
+    task_id = State()
+    user_id = State()
+    description = State()

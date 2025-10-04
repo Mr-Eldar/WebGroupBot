@@ -50,8 +50,8 @@ class Task(Base):
     task_name: Mapped[str] = mapped_column(String(300))
     task_description: Mapped[str] = mapped_column(String(2000))
     task_complete_time: Mapped[str] = mapped_column(String(100))
-    task_materials: Mapped[str] = mapped_column(String(1000))
-    points: Mapped[int] = mapped_column(BigInteger, default=0)
+    task_materials: Mapped[str] = mapped_column(String(1000), default='Нет материалов')
+    points: Mapped[str] = mapped_column(String(50), default=0)
 
 
 async def async_main():
