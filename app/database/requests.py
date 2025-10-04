@@ -219,34 +219,53 @@ async def get_hw_by_id(task_id):
 
 async def approve_user_hw(tg_id, task_id, points):
     async with async_session() as session:
-        # Ищем пользователя по tg_id
-        user = await session.scalar(select(User).where(User.tg_id == tg_id))
-        if user:
+        try:
+            print(f"DEBUG: Starting approve_user_hw - tg_id: {tg_id}, task_id: {task_id}, points: {points}")
+            
+            # Ищем пользователя по tg_id
+            user = await session.scalar(select(User).where(User.tg_id == tg_id))
+            if not user:
+                print(f"DEBUG: User with tg_id {tg_id} not found!")
+                return False
+                
+            print(f"DEBUG: User found: {user.su}, current points: {user.points}")
+            
+            # Обновляем баллы
             old_points = user.points
             user.points += points
             user.completed_hw += 1
 
-            # Ищем запись UserTask по user.id (внутреннему ID) и task_id
+            # Ищем запись UserTask
             userTask = await session.scalar(
                 select(UserTask).where(
-                    UserTask.user_id == user.id,  # используем user.id, а не tg_id
+                    UserTask.user_id == user.id,
                     UserTask.task_id == task_id
                 )
             )
+            
             if userTask:
                 userTask.status = 'approved ✅'
+                print(f"DEBUG: UserTask status updated to approved")
+            else:
+                print(f"DEBUG: UserTask not found for user_id {user.id} and task_id {task_id}")
 
             await session.commit()
-
-            # ОБНОВЛЯЕМ УРОВЕНЬ ПОЛЬЗОВАТЕЛЯ
+            print(f"DEBUG: Successfully updated user points: {old_points} -> {user.points}")
+            
+            # Обновляем уровень
             level_info = await update_user_level(tg_id)
-
-            # Обновляем рейтинг если баллы изменились
+            
+            # Обновляем рейтинг
             if old_points != user.points:
                 await update_user_ratings()
-
+                
+            print(f"DEBUG: approve_user_hw completed successfully")
             return level_info
-        return False
+            
+        except Exception as e:
+            print(f"DEBUG: Error in approve_user_hw: {e}")
+            await session.rollback()
+            return False
 
 
 async def decline_user_hw(tg_id, task_id):

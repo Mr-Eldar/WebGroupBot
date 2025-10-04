@@ -452,6 +452,7 @@ async def check_success_hw_process(callback: CallbackQuery):
         await callback.answer("❌ Ошибка при одобрении ДЗ")
         print(f"Error: {e}")
 
+
 @user.callback_query(F.data.startswith('check_reject_hw_'))
 async def check_reject_hw_process(callback: CallbackQuery):
     try:
@@ -475,6 +476,7 @@ async def check_reject_hw_process(callback: CallbackQuery):
     except Exception as e:
         await callback.answer("❌ Ошибка при отклонении ДЗ")
         print(f"Error: {e}")
+
 
 @user.callback_query(F.data.startswith('check_danger_hw_'))
 async def check_danger_hw_process(callback: CallbackQuery, state: FSMContext):
