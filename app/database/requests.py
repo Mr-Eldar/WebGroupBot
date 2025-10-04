@@ -139,19 +139,19 @@ async def assign_task_to_user(tg_id, task_id):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
-            # Преобразуем task_id в число
-            task_id_int = int(task_id)
+            task_id_int = int(task_id) if isinstance(task_id, str) else task_id
+            
             user_task = await session.scalar(
                 select(UserTask).where(
-                    UserTask.user_id == user.id,
-                    UserTask.task_id == task_id_int  # Используем число
+                    UserTask.user_id == user.id,  # используем user.id
+                    UserTask.task_id == task_id_int
                 )
             )
 
             if not user_task:
                 user_task = UserTask(
-                    user_id=user.id,
-                    task_id=task_id_int,  # Используем число
+                    user_id=user.id,  # сохраняем user.id
+                    task_id=task_id_int,
                     status='in progress ⌛️'
                 )
                 session.add(user_task)
@@ -217,18 +217,19 @@ async def get_hw_by_id(task_id):
         return await session.scalar(select(Task).where(Task.id == task_id_int))
 
 
-async def approve_user_hw(user_id, task_id, points):
+async def approve_user_hw(tg_id, task_id, points):
     async with async_session() as session:
-        # Ищем пользователя по внутреннему ID (user_id), а не tg_id
-        user = await session.scalar(select(User).where(User.id == user_id))
+        # Ищем пользователя по tg_id
+        user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
             old_points = user.points
             user.points += points
             user.completed_hw += 1
 
+            # Ищем запись UserTask по user.id (внутреннему ID) и task_id
             userTask = await session.scalar(
                 select(UserTask).where(
-                    UserTask.user_id == user.id,
+                    UserTask.user_id == user.id,  # используем user.id, а не tg_id
                     UserTask.task_id == task_id
                 )
             )
@@ -238,13 +239,13 @@ async def approve_user_hw(user_id, task_id, points):
             await session.commit()
 
             # ОБНОВЛЯЕМ УРОВЕНЬ ПОЛЬЗОВАТЕЛЯ
-            level_info = await update_user_level(user.tg_id)  # Используем tg_id для обновления уровня
+            level_info = await update_user_level(tg_id)
 
             # Обновляем рейтинг если баллы изменились
             if old_points != user.points:
                 await update_user_ratings()
 
-            return level_info  # Возвращаем информацию об уровне
+            return level_info
         return False
 
 
