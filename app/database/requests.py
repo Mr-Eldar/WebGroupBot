@@ -139,17 +139,19 @@ async def assign_task_to_user(tg_id, task_id):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
+            # Преобразуем task_id в число
+            task_id_int = int(task_id) if isinstance(task_id, str) else task_id
             user_task = await session.scalar(
                 select(UserTask).where(
                     UserTask.user_id == user.id,
-                    UserTask.task_id == task_id
+                    UserTask.task_id == task_id_int  # Используем число
                 )
             )
 
             if not user_task:
                 user_task = UserTask(
                     user_id=user.id,
-                    task_id=task_id,
+                    task_id=task_id_int,  # Используем число
                     status='in progress ⌛️'
                 )
                 session.add(user_task)
@@ -177,10 +179,12 @@ async def get_task_status_for_user(tg_id, task_id):
         if not user:
             return None
 
+        # Преобразуем task_id в число
+        task_id_int = int(task_id) if isinstance(task_id, str) else task_id
         user_task = await session.scalar(
             select(UserTask).where(
                 UserTask.user_id == user.id,
-                UserTask.task_id == task_id
+                UserTask.task_id == task_id_int  # Используем число
             )
         )
         return user_task.status if user_task else None
@@ -221,10 +225,12 @@ async def approve_user_hw(tg_id, task_id, points):
             user.points += int(points)
             user.completed_hw += 1
 
+            # Преобразуем task_id в число
+            task_id_int = int(task_id) if isinstance(task_id, str) else task_id
             userTask = await session.scalar(
                 select(UserTask).where(
                     UserTask.user_id == user.id,
-                    UserTask.task_id == task_id
+                    UserTask.task_id == task_id_int  # Используем число
                 )
             )
             if userTask:
@@ -248,10 +254,13 @@ async def decline_user_hw(tg_id, task_id):
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
             user.expired_hw += 1
+            
+            # Преобразуем task_id в число
+            task_id_int = int(task_id) if isinstance(task_id, str) else task_id
             userTask = await session.scalar(
                 select(UserTask).where(
                     UserTask.user_id == user.id,
-                    UserTask.task_id == task_id
+                    UserTask.task_id == task_id_int  # Используем число
                 )
             )
             if userTask:
@@ -265,10 +274,12 @@ async def danger_user_hw(tg_id, task_id):
     async with async_session() as session:
         user = await session.scalar(select(User).where(User.tg_id == tg_id))
         if user:
+            # Преобразуем task_id в число
+            task_id_int = int(task_id) if isinstance(task_id, str) else task_id
             userTask = await session.scalar(
                 select(UserTask).where(
                     UserTask.user_id == user.id,
-                    UserTask.task_id == task_id
+                    UserTask.task_id == task_id_int  # Используем число
                 )
             )
             if userTask:

@@ -313,7 +313,8 @@ async def clb_settings_edit_fi(callback: CallbackQuery, state: FSMContext):
 
 @user.callback_query(F.data.startswith('task_'))
 async def clb_task_info(callback: CallbackQuery):
-    task = await get_hw_by_id(callback.data.split('_')[1])
+    task_id = callback.data.split('_')[1]
+    task = await get_hw_by_id(task_id)  # Теперь передается правильный тип
     await send_typing_action(callback)
     await callback.answer()
     await callback.message.edit_text('📚 <b>Новое домашнее задание!</b>\n\n'
@@ -323,7 +324,8 @@ async def clb_task_info(callback: CallbackQuery):
                                      '📋 <b>Описание:</b>\n'
                                      f'<b>{task.task_description}</b>\n\n'
                                      '📎 <b>Материалы:</b>\n'
-                                     f'{task.task_materials}\n\n', reply_markup=await hw_kb(task, callback.from_user.id))
+                                     f'{task.task_materials}\n\n', 
+                                     reply_markup=await hw_kb(task, callback.from_user.id))
 
 
 @user.callback_query(F.data.startswith('send_hw_'))
@@ -340,9 +342,10 @@ async def clb_send_hw(callback: CallbackQuery, state: FSMContext):
                                      '📌 <b>Как отправить:</b>\n'
                                      '1. Нажми на скрепку 📎\n'
                                      '2. Выбери "Галерея" или "Фото"\n'
-                                     '3. Выбери несколько фото (удерживай для множественного выбора)3. Выбери несколько фото (удерживай для множественного выбора)\n'
+                                     '3. Выбери несколько фото (удерживай для множественного выбора)\n'
                                      '4. Отправь все сразу')
-    await state.update_data(hw_task_id=callback.data.split('_')[-1])
+    task_id = callback.data.split('_')[-1]
+    await state.update_data(hw_task_id=task_id)
     await state.set_state(SendHwForCheck.hw_photos)
 
 
@@ -396,7 +399,7 @@ async def clb_task_in_progress(callback: CallbackQuery):
 @user.callback_query(F.data.startswith('check_success_hw_'))
 async def check_success_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])
+        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
         await state.update_data(task_id=task_id)
 
         await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
@@ -414,7 +417,7 @@ async def check_success_hw_process(callback: CallbackQuery, state: FSMContext):
 @user.callback_query(F.data.startswith('check_reject_hw_'))
 async def check_reject_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])
+        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
         await state.update_data(task_id=task_id)
 
         await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
@@ -432,7 +435,7 @@ async def check_reject_hw_process(callback: CallbackQuery, state: FSMContext):
 @user.callback_query(F.data.startswith('check_danger_hw_'))
 async def check_danger_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])
+        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
         await state.update_data(task_id=task_id)
 
         await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
