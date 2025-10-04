@@ -399,11 +399,11 @@ async def clb_task_in_progress(callback: CallbackQuery):
 @user.callback_query(F.data.startswith('check_success_hw_'))
 async def check_success_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
+        task_id = int(callback.data.split('_')[-1])
         await state.update_data(task_id=task_id)
 
-        await callback.message.delete()
-        await callback.message.answer(
+        # Редактируем существующее сообщение вместо удаления
+        await callback.message.edit_text(
             '👤 Выберите пользователя которому засчитать это ДЗ.',
             reply_markup=await get_users_kb()
         )
@@ -417,11 +417,11 @@ async def check_success_hw_process(callback: CallbackQuery, state: FSMContext):
 @user.callback_query(F.data.startswith('check_reject_hw_'))
 async def check_reject_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
+        task_id = int(callback.data.split('_')[-1])
         await state.update_data(task_id=task_id)
 
-        await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id - 1)
-        await callback.message.answer(
+        # Редактируем сообщение вместо удаления
+        await callback.message.edit_text(
             '👤 Выберите пользователя которому отклонить это ДЗ.',
             reply_markup=await get_users_kb()
         )
@@ -431,15 +431,14 @@ async def check_reject_hw_process(callback: CallbackQuery, state: FSMContext):
         await callback.answer("❌ Ошибка при обработке")
         print(f"Error: {e}")
 
-
 @user.callback_query(F.data.startswith('check_danger_hw_'))
 async def check_danger_hw_process(callback: CallbackQuery, state: FSMContext):
     try:
-        task_id = int(callback.data.split('_')[-1])  # Преобразуем в int
+        task_id = int(callback.data.split('_')[-1])
         await state.update_data(task_id=task_id)
 
-        await callback.message.bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        await callback.message.answer(
+        # Редактируем сообщение вместо удаления
+        await callback.message.edit_text(
             '👤 Выберите пользователя которому хотите сообщить о неправильном ДЗ.',
             reply_markup=await get_users_kb()
         )
