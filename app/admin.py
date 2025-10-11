@@ -30,6 +30,12 @@ async def cmd_start(message: Message):
                             '💡 <b>Используйте кнопки ниже для управления</b>', reply_markup=admin_kb)
 
 
+@admin.message(Admin(), Command('send_report'))
+async def cmd_send_report(message: Message, state: FSMContext):
+    await message.answer(f'Укажите <b>телеграм ID</b> пользователя для того чтобы отправить ему репорт.')
+    await state.set_state(SendReport.telegram_ID)
+
+
 @admin.callback_query(F.data == 'add_hw')
 async def clb_add_hw(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text('📝 <b>Создание ДЗ</b>\n\n'    
@@ -187,3 +193,26 @@ async def st_task_finally_add(event: Message | CallbackQuery, state: FSMContext)
                 await state.clear()
         await event.message.answer('Расслыка уведомления о новом дз пользователям была окончена.')
         await state.clear()
+
+
+@admin.message(Admin(), SendReport.telegram_ID)
+async def get_report_tg_id(message: Message, state: FSMContext):
+    if len(message.text) < 10:
+        await message.answer('❌ Некорректный ID!')
+        return
+    await state.update_data(telegram_id=message.text)
+    await message.answer('Теперь опишите ваш репорт.')
+    await state.set_state(SendReport.description)
+
+
+@admin.message(Admin(), SendReport.description)
+async def get_report_tg_id(message: Message, state: FSMContext):
+    await state.update_data(report_desc=message.text)
+    data = await state.get_data()
+    await message.bot.send_message(chat_id=data['telegram_id'], text=f'Здраствуйте уважаемый пользователь {message.from_user.first_name} телеграмм бота <b>Web-Разработка</b> 💻\n\n'
+                                                                     f'Вас беспокоит администрация данного тг бота, по причине: {data["description"]}\n\n'
+                                                                     f'Мы даем вам первое предупреждение за нарушение правил пользования ботом.\n'
+                                                                     f'<b>Еще одно замечание и вы будете удалены из бота.</b>\n\n'
+                                                                     f'Просим понять нас и выполнить наши просьбы.')
+    await message.answer('Пользователь получил предупреждение.')
+    await state.clear()

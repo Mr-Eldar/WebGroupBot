@@ -37,3 +37,8 @@ class DangerHw(StatesGroup):
     task_id = State()
     user_id = State()
     description = State()
+
+
+class SendReport(StatesGroup):
+    telegram_ID = State()
+    description = State()
